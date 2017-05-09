@@ -6,13 +6,14 @@ will have no effect if the events have not been modified in google
 calendar.  If the events have been modified in google calendar and
 then are imported again, they will be overwritten, in general.
 
-All imported events will start with a delimiter string:
+All imported events will start with a delimiter string in the
+description:
 
     ====================
 
 Users of google calendar may put any text they like before the
 delimiter string and this package will maintain that text of the event
-during any subsequent updates.
+during any subsequent imports.
 
 We use google calendar private extended properties to store data that
 lets us re-import safely.  Each created event will have a private
@@ -61,6 +62,13 @@ func (c *Changes) String() string {
 
 // Import imports srcEvents into a google calendar.  See the package
 // comments for more details.
+//
+// client is an http client ready to be passed to calendar.New().  An
+// introduction to getting started is here:
+// https://developers.google.com/google-apps/calendar/quickstart/go
+//
+// privateKey is described in the package comments.  It should be
+// short and unique.
 func Import(
 	ctx context.Context,
 	client *http.Client,

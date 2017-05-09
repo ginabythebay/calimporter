@@ -48,6 +48,7 @@ func (d *description) String() string {
 
 // Event represents a single importable event.
 type Event struct {
+	// Title will be used as the summary in google calendar
 	Title       string
 	Start       time.Time
 	End         time.Time
