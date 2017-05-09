@@ -31,6 +31,8 @@ import (
 	"strings"
 	"time"
 
+	calendar "google.golang.org/api/calendar/v3"
+
 	"golang.org/x/net/context"
 )
 
