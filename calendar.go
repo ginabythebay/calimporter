@@ -10,9 +10,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Scope is the scope we need to read and write calendars.
-const Scope = calendar.CalendarScope
-
 // cal implements read and write operations against a google calendar.
 type cal struct {
 	svc *calendar.Service
