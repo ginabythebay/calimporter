@@ -1,4 +1,4 @@
-package calimporter
+package calsync
 
 import (
 	"fmt"

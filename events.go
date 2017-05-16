@@ -1,4 +1,4 @@
-package calimporter
+package calsync
 
 import (
 	"strings"
@@ -46,7 +46,7 @@ func (d *description) String() string {
 	return d.prefix + "\n" + delim + "\n" + d.suffix
 }
 
-// Event represents a single importable event.
+// Event represents a single synchronizable event.
 type Event struct {
 	// Title will be used as the summary in google calendar
 	Title       string
@@ -56,8 +56,8 @@ type Event struct {
 	Description string
 	// SrcID will be stored in the google calendar event as a private
 	// property and will be used to recognize the same event if you attempt to
-	// import it again later.  It should be unique across all events that you
-	// import into a single calendar.
+	// sync it again later.  It should be unique across all events that you
+	// sync into a single calendar.
 	SrcID string
 
 	// only set for events we read from google calendar.  The id assigned by

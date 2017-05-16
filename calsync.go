@@ -1,12 +1,17 @@
 /*
-Package calimporter helps import events into a Google Calendar.
+Package calsync helps sync events into a Google Calendar.
 
-Importing the same set of events into a google calendar a second time
+Syncing the same set of events into a google calendar a second time
 will have no effect if the events have not been modified in google
 calendar.  If the events have been modified in google calendar and
 then are imported again, they will be overwritten, in general.
 
-All imported events will start with a delimiter string in the
+After you sync events into a google calendar, if you do another sync
+with the same private key, and you don't include the same events as
+you did the first time, the missing events will be removed from the
+google calendar.
+
+All synced events will start with a delimiter string in the
 description:
 
     ====================
@@ -16,15 +21,15 @@ delimiter string and this package will maintain that text of the event
 during any subsequent imports.
 
 We use google calendar private extended properties to store data that
-lets us re-import safely.  Each created event will have a private
+lets us re-sync safely.  Each created event will have a private
 extended property of the form <privateKey>=True and another one of
 the form <privateKey>ID=<srcID>.  The first private property allows
-us to query for all matching events in subsequent imports.  The second
+us to query for all matching events in subsequent syncs.  The second
 private propery lets us match up srcEvents with google calendar events
-in subsequent imports so we can properly add/update/delete as
+in subsequent syncs so we can properly add/update/delete as
 appropriate.
 */
-package calimporter
+package calsync
 
 import (
 	"fmt"
@@ -41,7 +46,7 @@ import (
 const Scope = calendar.CalendarScope
 
 // Changes represents a set of changes that were made as the result of
-// an Import call.
+// an Sync call.
 type Changes struct {
 	Deletes, Updates, Adds []*Event
 }
@@ -60,7 +65,7 @@ func (c *Changes) String() string {
 	return strings.Join(lines, "\n")
 }
 
-// Import imports srcEvents into a google calendar.  See the package
+// Sync synchronizes srcEvents into a google calendar.  See the package
 // comments for more details.
 //
 // client is an http client ready to be passed to calendar.New().  An
@@ -69,7 +74,7 @@ func (c *Changes) String() string {
 //
 // privateKey is described in the package comments.  It should be
 // short and unique.
-func Import(
+func Sync(
 	ctx context.Context,
 	client *http.Client,
 	privateKey string,
@@ -138,7 +143,7 @@ func getOperations(now time.Time, calEvents, srcEvents []*Event) *Changes {
 	return &changes
 }
 
-// Opt is an optional way to configure the Import command.
+// Opt is an optional way to configure the Sync command.
 type Opt func(c *cal)
 
 // CalendarID will override the default of accessing the users primary
@@ -149,7 +154,7 @@ func CalendarID(calID string) Opt {
 	}
 }
 
-// Nop make the Import call operation in readonly mode, reporting what
+// Nop makes the Sync call operate in readonly mode, reporting what
 // it would have done without modifying anything.
 func Nop() Opt {
 	return func(c *cal) {

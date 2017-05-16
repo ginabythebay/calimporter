@@ -1,4 +1,4 @@
-package calimporter
+package calsync
 
 import (
 	"fmt"
@@ -14,11 +14,11 @@ import (
 type cal struct {
 	svc *calendar.Service
 
-	// short name to uniquely identify the application importing events into
+	// short name to uniquely identify the application syncing events into
 	// a google calendar.
 	privateKey string
 
-	// calendar to import.  If you want to import into the main calendar, use
+	// calendar to sync.  If you want to sync into the main calendar, use
 	// "primary"
 	calID string
 
