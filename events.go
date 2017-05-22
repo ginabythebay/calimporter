@@ -1,6 +1,7 @@
 package calsync
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -49,16 +50,16 @@ func (d *description) String() string {
 // Event represents a single synchronizable event.
 type Event struct {
 	// Title will be used as the summary in google calendar
-	Title       string
-	Start       time.Time
-	End         time.Time
-	Where       string
-	Description string
+	Title       string    `json:"title"`
+	Start       time.Time `json:"start"`
+	End         time.Time `json:"end"`
+	Where       string    `json:"where"`
+	Description string    `json:"description"`
 	// SrcID will be stored in the google calendar event as a private
 	// property and will be used to recognize the same event if you attempt to
 	// sync it again later.  It should be unique across all events that you
 	// sync into a single calendar.
-	SrcID string
+	SrcID string `json:"src_id"`
 
 	// only set for events we read from google calendar.  The id assigned by
 	// google calendar.
@@ -142,4 +143,43 @@ func parseEvent(in *calendar.Event, idKey string) (*Event, error) {
 		srcID,
 		in.Id,
 	}, nil
+}
+
+// MarshalJSON marshals to json, using RFC 3339 for the start and end
+// fields.
+func (ev *Event) MarshalJSON() ([]byte, error) {
+	type Alias Event
+	return json.Marshal(&struct {
+		Start string `json:"start"`
+		End   string `json:"end"`
+		*Alias
+	}{
+		Start: ev.Start.Format(time.RFC3339),
+		End:   ev.End.Format(time.RFC3339),
+		Alias: (*Alias)(ev),
+	})
+}
+
+// UnmarshalJSON marshals from json, using RFC 3339 for the start and
+// end fields.
+func (ev *Event) UnmarshalJSON(data []byte) error {
+	type Alias Event
+	aux := &struct {
+		Start string `json:"start"`
+		End   string `json:"end"`
+		*Alias
+	}{
+		Alias: (*Alias)(ev),
+	}
+	var err error
+	if err = json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	if ev.Start, err = time.Parse(time.RFC3339, aux.Start); err != nil {
+		return err
+	}
+	if ev.End, err = time.Parse(time.RFC3339, aux.End); err != nil {
+		return err
+	}
+	return nil
 }
