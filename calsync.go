@@ -114,10 +114,14 @@ func Sync(
 }
 
 // Fetch fetches all upcoming events for a given scope
-func Fetch(ctx context.Context, client *http.Client, scope string) ([]*Event, error) {
+func Fetch(ctx context.Context, client *http.Client, scope string, opts ...Opt) (
+	[]*Event, error) {
 	c, err := newCal(client, scope)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating cal: %v", err)
+	}
+	for _, o := range opts {
+		o(c)
 	}
 	return c.fetch(ctx, time.Now())
 }
