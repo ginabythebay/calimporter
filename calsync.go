@@ -7,7 +7,7 @@ calendar.  If the events have been modified in google calendar and
 then are imported again, they will be overwritten, in general.
 
 After you sync events into a google calendar, if you do another sync
-with the same private key, and you don't include the same events as
+with the same scope, and you don't include the same events as
 you did the first time, the missing events will be removed from the
 google calendar.
 
@@ -22,8 +22,8 @@ during any subsequent imports.
 
 We use google calendar private extended properties to store data that
 lets us re-sync safely.  Each created event will have a private
-extended property of the form <privateKey>=True and another one of
-the form <privateKey>ID=<srcID>.  The first private property allows
+extended property of the form <scope>=True and another one of
+the form <scope>ID=<srcID>.  The first private property allows
 us to query for all matching events in subsequent syncs.  The second
 private propery lets us match up srcEvents with google calendar events
 in subsequent syncs so we can properly add/update/delete as
@@ -72,17 +72,17 @@ func (c *Changes) String() string {
 // introduction to getting started is here:
 // https://developers.google.com/google-apps/calendar/quickstart/go
 //
-// privateKey is described in the package comments.  It should be
+// scope is described in the package comments.  It should be
 // short and unique.
 func Sync(
 	ctx context.Context,
 	client *http.Client,
-	privateKey string,
+	scope string,
 	srcEvents []*Event,
 	opts ...Opt) (*Changes, error) {
 	now := time.Now()
 
-	c, err := newCal(client, privateKey)
+	c, err := newCal(client, scope)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating cal: %v", err)
 	}
@@ -111,6 +111,15 @@ func Sync(
 		}
 	}
 	return changes, nil
+}
+
+// Fetch fetches all upcoming events for a given scope
+func Fetch(ctx context.Context, client *http.Client, scope string) ([]*Event, error) {
+	c, err := newCal(client, scope)
+	if err != nil {
+		return nil, fmt.Errorf("failed creating cal: %v", err)
+	}
+	return c.fetch(ctx, time.Now())
 }
 
 func getOperations(now time.Time, calEvents, srcEvents []*Event) *Changes {

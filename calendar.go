@@ -16,7 +16,7 @@ type cal struct {
 
 	// short name to uniquely identify the application syncing events into
 	// a google calendar.
-	privateKey string
+	scope string
 
 	// calendar to sync.  If you want to sync into the main calendar, use
 	// "primary"
@@ -27,15 +27,15 @@ type cal struct {
 	nop bool
 }
 
-func newCal(client *http.Client, privateKey string) (*cal, error) {
+func newCal(client *http.Client, scope string) (*cal, error) {
 	svc, err := calendar.New(client)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating service: %v", err)
 	}
 	return &cal{
-		svc:        svc,
-		privateKey: privateKey,
-		calID:      "primary"}, nil
+		svc:   svc,
+		scope: scope,
+		calID: "primary"}, nil
 }
 
 func (c cal) fetch(ctx context.Context, now time.Time) ([]*Event, error) {
@@ -44,7 +44,7 @@ func (c cal) fetch(ctx context.Context, now time.Time) ([]*Event, error) {
 		Context(ctx).
 		SingleEvents(true).
 		TimeMin(now.Format(time.RFC3339)).
-		PrivateExtendedProperty(c.privateKey + "=True").
+		PrivateExtendedProperty(c.scope + "=True").
 		Do()
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve google calendar events: %v", err)
@@ -118,11 +118,11 @@ func (c cal) makeCalEvent(ev *Event) *calendar.Event {
 		},
 		ExtendedProperties: &calendar.EventExtendedProperties{
 			Private: map[string]string{
-				c.privateKey: "True",
-				c.idKey():    ev.SrcID,
+				c.scope:   "True",
+				c.idKey(): ev.SrcID,
 			},
 		},
 	}
 }
 
-func (c cal) idKey() string { return c.privateKey + "ID" }
+func (c cal) idKey() string { return c.scope + "ID" }
