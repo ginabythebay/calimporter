@@ -45,6 +45,18 @@ import (
 // Scope is the scope we need to read and write calendars.
 const Scope = calendar.CalendarScope
 
+const (
+	maxPropLen = 40 // maximum length the google calendar allows for property keys
+
+	// We append "ID" to the scope to store the src id.  We add 5 to
+	// give us room to add other things in a future version of this
+	// api.
+	maxAppendLen = len("ID") + 5
+
+	// MaxScopeLen is the maximum length we allow for a scope
+	MaxScopeLen = maxPropLen - maxAppendLen
+)
+
 // Changes represents a set of changes that were made as the result of
 // an Sync call.
 type Changes struct {
@@ -81,6 +93,11 @@ func Sync(
 	srcEvents []*Event,
 	opts ...Opt) (*Changes, error) {
 	now := time.Now()
+
+	if len(scope) > MaxScopeLen {
+		return nil, fmt.Errorf("scope %q is too long.  The maximum supported length is %d",
+			scope, MaxScopeLen)
+	}
 
 	c, err := newCal(client, scope)
 	if err != nil {
